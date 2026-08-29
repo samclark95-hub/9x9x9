@@ -3,7 +3,15 @@
 import type { Post } from "@/lib/types";
 import PostCard from "./PostCard";
 
-export default function Feed({ posts }: { posts: Post[] }) {
+export default function Feed({
+  posts,
+  canDelete = false,
+  onDelete,
+}: {
+  posts: Post[];
+  canDelete?: boolean;
+  onDelete?: (id: string) => void;
+}) {
   if (posts.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-line p-8 text-center">
@@ -18,7 +26,12 @@ export default function Feed({ posts }: { posts: Post[] }) {
   return (
     <div className="flex flex-col gap-3">
       {posts.map((p) => (
-        <PostCard key={p.id} post={p} />
+        <PostCard
+          key={p.id}
+          post={p}
+          canDelete={canDelete}
+          onDelete={onDelete}
+        />
       ))}
     </div>
   );

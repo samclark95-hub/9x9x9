@@ -5,6 +5,7 @@ import { uploadPhoto } from "@/lib/photo";
 import { supabase } from "@/lib/supabase";
 import type { Post } from "@/lib/types";
 import { currentInning, paceInning, sumTotals } from "@/lib/totals";
+import { useAdmin } from "@/lib/useAdmin";
 import { useName } from "@/lib/useName";
 import Scoreboard from "./Scoreboard";
 import Composer, { type Draft } from "./Composer";
@@ -18,6 +19,7 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
   const [error, setError] = useState<string | null>(null);
   const [live, setLive] = useState(false);
   const { name, setName, ready } = useName();
+  const { isAdmin, secret: adminSecret } = useAdmin();
 
   // Derived on every render by summing the feed - never stored (spec §4).
   const totals = sumTotals(posts);
@@ -133,6 +135,31 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
     [name]
   );
 
+  const handleDelete = useCallback(
+    async (id: string) => {
+      if (!isAdmin || !adminSecret) return;
+      const before = posts;
+      // Optimistic removal; Realtime DELETE will confirm it on every
+      // other phone. Restore the row if the server refuses.
+      setPosts((prev) => prev.filter((p) => p.id !== id));
+
+      const res = await fetch("/api/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-secret": adminSecret,
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      if (!res.ok) {
+        setPosts(before);
+        setError("Delete failed.");
+      }
+    },
+    [isAdmin, adminSecret, posts]
+  );
+
   return (
     <>
       <Scoreboard
@@ -169,7 +196,7 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
           />
           <span className="sr-only">{live ? "Live" : "Reconnecting"}</span>
         </div>
-        <Feed posts={posts} />
+        <Feed posts={posts} canDelete={isAdmin} onDelete={handleDelete} />
       </section>
     </>
   );
