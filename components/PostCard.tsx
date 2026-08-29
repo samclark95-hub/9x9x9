@@ -1,5 +1,5 @@
 import { ordinal } from "@/lib/totals";
-import type { Post } from "@/lib/types";
+import { BET_PREFIX, isBetNote, type Post } from "@/lib/types";
 import RelativeTime from "./RelativeTime";
 
 function Chip({ emoji, n, tint }: { emoji: string; n: number; tint: string }) {
@@ -24,12 +24,18 @@ export default function PostCard({
   onDelete?: (id: string) => void;
 }) {
   const hasDeltas = post.beers > 0 || post.dogs > 0;
+  const isBet = isBetNote(post.note);
 
   return (
     <article className="overflow-hidden rounded-2xl bg-surface ring-1 ring-line">
       <div className="p-4">
         <header className="flex items-baseline gap-2">
           <h3 className="truncate font-bold">{post.author}</h3>
+          {isBet && (
+            <span className="shrink-0 rounded-md bg-beer/20 px-2 py-0.5 text-xs font-black uppercase tracking-wide text-beer ring-1 ring-beer/40">
+              Bet
+            </span>
+          )}
           {post.inning != null && (
             <span className="shrink-0 rounded-md bg-black/40 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-muted ring-1 ring-line">
               {ordinal(post.inning)}
@@ -58,8 +64,12 @@ export default function PostCard({
         )}
 
         {post.note && (
-          <p className="mt-3 break-words text-[15px] leading-snug text-chalk/90">
-            {post.note}
+          <p
+            className={`mt-3 break-words text-[15px] leading-snug ${
+              isBet ? "font-bold text-beer" : "text-chalk/90"
+            }`}
+          >
+            {isBet ? post.note.slice(BET_PREFIX.length).trim() : post.note}
           </p>
         )}
       </div>

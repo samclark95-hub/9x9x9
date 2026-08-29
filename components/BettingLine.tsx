@@ -6,6 +6,7 @@ import {
   pickFor,
   type Prediction,
 } from "@/lib/predictions";
+import { betNote } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 
 function Row({
@@ -111,17 +112,30 @@ export default function BettingLine({ name }: { name: string | null }) {
   async function submit() {
     if (!name || beers === null || dogs === null) return;
     setSaving(true);
+
     const { data } = await supabase
       .from("predictions")
       .insert({ voter: name, beers, dogs })
       .select()
       .single();
+
     if (data) {
       const row = data as Prediction;
       setRows((prev) =>
         prev.some((p) => p.id === row.id) ? prev : [row, ...prev]
       );
+
+      // Announce it in the feed only once the bet actually saved.
+      // beers/dogs are deliberately 0: the scoreboard sums the feed,
+      // and a bet is a guess, not something he has consumed.
+      await supabase.from("posts").insert({
+        author: name,
+        beers: 0,
+        dogs: 0,
+        note: betNote(beers, dogs),
+      });
     }
+
     setSaving(false);
     setOpen(false);
   }
