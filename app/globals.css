@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+/* Dark theme only — no light mode (spec §7). */
+@theme {
+  --color-field: #0a0e0a;
+  --color-surface: #141a15;
+  --color-line: #253026;
+  --color-chalk: #f5f3ea;
+  --color-muted: #8b9a8d;
+  --color-beer: #f6b93b;
+  --color-dog: #e55039;
+  --color-water: #4aa3df;
+}
+
+html {
+  color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-field);
+  color: var(--color-chalk);
+  overscroll-behavior-y: none;
+}
