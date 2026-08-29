@@ -1,4 +1,4 @@
-import Feed from "@/components/Feed";
+import App from "@/components/App";
 import { supabase } from "@/lib/supabase";
 import type { Post } from "@/lib/types";
 
@@ -31,12 +31,7 @@ export default async function Home() {
         <p className="mt-2 text-sm text-muted">9 beers. 9 hot dogs. 9 innings.</p>
       </header>
 
-      <section aria-label="Feed">
-        <h2 className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-muted">
-          Feed
-        </h2>
-        <Feed posts={posts} />
-      </section>
+      <App initialPosts={posts} />
     </main>
   );
 }
