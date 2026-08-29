@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { uploadPhoto } from "@/lib/photo";
 import { supabase } from "@/lib/supabase";
 import type { Post } from "@/lib/types";
 import { useName } from "@/lib/useName";
@@ -11,6 +12,7 @@ import NamePrompt from "./NamePrompt";
 export default function App({ initialPosts }: { initialPosts: Post[] }) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [live, setLive] = useState(false);
   const { name, setName, ready } = useName();
@@ -25,7 +27,6 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
         (payload) => {
           const row = payload.new as Post;
           setPosts((prev) =>
-            // Our own insert may already be here from the optimistic path.
             prev.some((p) => p.id === row.id) ? prev : [row, ...prev]
           );
         }
@@ -39,7 +40,7 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
           setPosts((prev) => prev.filter((p) => p.id !== gone.id));
         }
       )
-      .subscribe((status) => setLive(status === "SUBSCRIBED"));
+      .subscribe((s) => setLive(s === "SUBSCRIBED"));
 
     return () => {
       supabase.removeChannel(channel);
@@ -51,10 +52,12 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
       if (!name) return;
       setBusy(true);
       setError(null);
+      setStatus(draft.file ? "Shrinking photo…" : null);
 
-      // Append optimistically so the tap feels instant on stadium wifi,
-      // then reconcile with whatever the server actually stored.
       const tempId = `temp-${crypto.randomUUID()}`;
+      const localPhoto = draft.file ? URL.createObjectURL(draft.file) : null;
+
+      // Append optimistically so the tap feels instant on stadium wifi.
       const optimistic: Post = {
         id: tempId,
         created_at: new Date().toISOString(),
@@ -64,9 +67,28 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
         dogs: draft.dogs,
         waters: draft.waters,
         note: draft.note || null,
-        photo_url: null,
+        photo_url: localPhoto,
       };
       setPosts((prev) => [optimistic, ...prev]);
+
+      const cleanup = () => {
+        if (localPhoto) URL.revokeObjectURL(localPhoto);
+      };
+
+      let photoUrl: string | null = null;
+      if (draft.file) {
+        try {
+          photoUrl = await uploadPhoto(draft.file);
+          setStatus("Posting…");
+        } catch {
+          setPosts((prev) => prev.filter((p) => p.id !== tempId));
+          cleanup();
+          setError("Photo upload failed. Try again, or post without it.");
+          setBusy(false);
+          setStatus(null);
+          return;
+        }
+      }
 
       const { data, error: insertError } = await supabase
         .from("posts")
@@ -77,12 +99,14 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
           dogs: draft.dogs,
           waters: draft.waters,
           note: draft.note || null,
+          photo_url: photoUrl,
         })
         .select()
         .single();
 
       if (insertError || !data) {
         setPosts((prev) => prev.filter((p) => p.id !== tempId));
+        cleanup();
         setError("Post failed. Check your signal and try again.");
       } else {
         const saved = data as Post;
@@ -93,8 +117,11 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
             ? withoutTemp
             : [saved, ...withoutTemp];
         });
+        cleanup();
       }
+
       setBusy(false);
+      setStatus(null);
     },
     [name]
   );
@@ -103,7 +130,7 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
     <>
       {ready && !name && <NamePrompt onSubmit={setName} />}
 
-      {name && <Composer onPost={handlePost} busy={busy} />}
+      {name && <Composer onPost={handlePost} busy={busy} status={status} />}
 
       {error && (
         <p

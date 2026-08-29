@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export type Draft = {
   beers: number;
@@ -8,9 +8,17 @@ export type Draft = {
   waters: number;
   inning: number | null;
   note: string;
+  file: File | null;
 };
 
-const EMPTY: Draft = { beers: 0, dogs: 0, waters: 0, inning: null, note: "" };
+const EMPTY: Draft = {
+  beers: 0,
+  dogs: 0,
+  waters: 0,
+  inning: null,
+  note: "",
+  file: null,
+};
 
 type Counter = "beers" | "dogs" | "waters";
 
@@ -23,24 +31,39 @@ const COUNTERS: { key: Counter; emoji: string; label: string; ring: string }[] =
 export default function Composer({
   onPost,
   busy,
+  status,
 }: {
   onPost: (draft: Draft) => Promise<void>;
   busy: boolean;
+  status: string | null;
 }) {
   const [draft, setDraft] = useState<Draft>(EMPTY);
+  const [preview, setPreview] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const staged = draft.beers + draft.dogs + draft.waters;
-  const canPost = !busy && (staged > 0 || draft.note.trim().length > 0);
+  const canPost =
+    !busy && (staged > 0 || draft.note.trim().length > 0 || draft.file !== null);
 
-  const bump = (key: Counter) =>
-    setDraft((d) => ({ ...d, [key]: d[key] + 1 }));
+  const bump = (key: Counter) => setDraft((d) => ({ ...d, [key]: d[key] + 1 }));
 
-  const clear = (key: Counter) => setDraft((d) => ({ ...d, [key]: 0 }));
+  function pickFile(file: File | null) {
+    setPreview((old) => {
+      if (old) URL.revokeObjectURL(old);
+      return file ? URL.createObjectURL(file) : null;
+    });
+    setDraft((d) => ({ ...d, file }));
+  }
 
   async function submit() {
     if (!canPost) return;
     await onPost({ ...draft, note: draft.note.trim() });
     setDraft(EMPTY);
+    setPreview((old) => {
+      if (old) URL.revokeObjectURL(old);
+      return null;
+    });
+    if (fileRef.current) fileRef.current.value = "";
   }
 
   return (
@@ -48,17 +71,13 @@ export default function Composer({
       aria-label="Add to the count"
       className="rounded-3xl bg-surface p-4 ring-1 ring-line"
     >
-      {/* Tap to stage, tap again to increase. Long-press-free, one-handed. */}
+      {/* Tap to stage, tap again to increase. One-handed, in the dark. */}
       <div className="grid grid-cols-3 gap-3">
         {COUNTERS.map(({ key, emoji, label, ring }) => (
           <button
             key={key}
             type="button"
             onClick={() => bump(key)}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              clear(key);
-            }}
             aria-label={`Add one ${label}`}
             className={`relative flex h-24 flex-col items-center justify-center gap-1 rounded-2xl bg-black/40 ring-1 ring-line transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 ${ring}`}
           >
@@ -80,7 +99,9 @@ export default function Composer({
       {staged > 0 && (
         <button
           type="button"
-          onClick={() => setDraft((d) => ({ ...d, beers: 0, dogs: 0, waters: 0 }))}
+          onClick={() =>
+            setDraft((d) => ({ ...d, beers: 0, dogs: 0, waters: 0 }))
+          }
           className="mt-2 w-full py-1 text-xs font-semibold uppercase tracking-wide text-muted"
         >
           Clear counts
@@ -124,13 +145,44 @@ export default function Composer({
         className="mt-4 w-full rounded-2xl bg-black/40 px-4 py-3.5 text-base outline-none ring-1 ring-line placeholder:text-muted/60 focus:ring-2 focus:ring-beer"
       />
 
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
+        className="sr-only"
+        id="photo-input"
+      />
+
+      {preview ? (
+        <div className="relative mt-3 overflow-hidden rounded-2xl ring-1 ring-line">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={preview} alt="Selected" className="max-h-56 w-full object-cover" />
+          <button
+            type="button"
+            onClick={() => pickFile(null)}
+            className="absolute right-2 top-2 rounded-full bg-black/80 px-3 py-1.5 text-xs font-bold ring-1 ring-line"
+          >
+            Remove
+          </button>
+        </div>
+      ) : (
+        <label
+          htmlFor="photo-input"
+          className="mt-3 flex h-14 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-black/40 text-sm font-bold text-muted ring-1 ring-line transition active:scale-[0.98]"
+        >
+          <span aria-hidden>📷</span> Add a photo
+        </label>
+      )}
+
       <button
         type="button"
         onClick={submit}
         disabled={!canPost}
         className="mt-3 w-full rounded-2xl bg-beer px-4 py-4 text-lg font-black text-black transition active:scale-[0.98] disabled:opacity-40"
       >
-        {busy ? "Posting…" : "Post"}
+        {busy ? (status ?? "Posting…") : "Post"}
       </button>
     </section>
   );
