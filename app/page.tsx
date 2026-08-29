@@ -1,4 +1,5 @@
 import App from "@/components/App";
+import InstallBanner from "@/components/InstallBanner";
 import { supabase } from "@/lib/supabase";
 import type { Post } from "@/lib/types";
 
@@ -30,6 +31,8 @@ export default async function Home() {
         </h1>
         <p className="mt-2 text-sm text-muted">9 beers. 9 hot dogs. 9 innings.</p>
       </header>
+
+      <InstallBanner />
 
       <App initialPosts={posts} />
     </main>
