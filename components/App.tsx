@@ -8,6 +8,7 @@ import { currentInning, paceInning, sumTotals } from "@/lib/totals";
 import { useAdmin } from "@/lib/useAdmin";
 import { useName } from "@/lib/useName";
 import Scoreboard from "./Scoreboard";
+import BettingLine from "./BettingLine";
 import Celebration from "./Celebration";
 import Composer, { type Draft } from "./Composer";
 import Feed from "./Feed";
@@ -190,6 +191,8 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
         inning={inning}
         pace={pace}
       />
+
+      <BettingLine name={name} />
 
       {ready && !name && <NamePrompt onSubmit={setName} />}
 
