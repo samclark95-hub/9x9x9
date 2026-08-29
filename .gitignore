@@ -40,8 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# keep the template committed so required vars are documented
-!.env.example
-
 .vercel
 .env*
+
+
+# keep the template committed so required vars are documented
+!.env.example
