@@ -32,7 +32,9 @@ export async function uploadPhoto(file: File): Promise<string> {
     .from("photos")
     .upload(path, compressed, {
       contentType: compressed.type || "image/jpeg",
-      cacheControl: "31536000",
+      // Short TTL on purpose: these are served from a CDN, and a long cache
+      // would keep a deleted photo reachable at the edge after removal.
+      cacheControl: "300",
       upsert: false,
     });
 

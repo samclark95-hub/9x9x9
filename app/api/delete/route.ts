@@ -5,6 +5,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const HEADER = "x-admin-secret";
+const BUCKET = "photos";
 
 /**
  * Admin delete. The service_role key lives ONLY here, on the server - it is
@@ -40,12 +41,45 @@ export async function POST(request: Request) {
     auth: { persistSession: false },
   });
 
+  // Read the row first so we know whether a photo needs removing too.
+  // Deleting the row alone would orphan the image, and it would stay
+  // publicly readable at its URL forever - "deleted" has to mean gone.
+  const { data: existing } = await admin
+    .from("posts")
+    .select("photo_url")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await admin.from("posts").delete().eq("id", id);
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true });
+  let photoRemoved = false;
+  const objectPath = storagePathFrom(existing?.photo_url ?? null);
+  if (objectPath) {
+    const { error: storageError } = await admin.storage
+      .from(BUCKET)
+      .remove([objectPath]);
+    if (storageError) {
+      // The post is already gone; report it rather than failing the request.
+      console.error("orphaned photo, storage delete failed:", storageError.message);
+    } else {
+      photoRemoved = true;
+    }
+  }
+
+  return NextResponse.json({ ok: true, photoRemoved });
+}
+
+/** Pulls the object key out of a public storage URL, or null if there isn't one. */
+function storagePathFrom(photoUrl: string | null): string | null {
+  if (!photoUrl) return null;
+  const marker = `/storage/v1/object/public/${BUCKET}/`;
+  const at = photoUrl.indexOf(marker);
+  if (at === -1) return null;
+  const path = photoUrl.slice(at + marker.length).split("?")[0];
+  return path ? decodeURIComponent(path) : null;
 }
 
 /** Constant-time-ish compare so the secret cannot be guessed byte by byte. */
