@@ -5,7 +5,6 @@ export type Post = {
   inning: number | null;
   beers: number;
   dogs: number;
-  waters: number;
   note: string | null;
   photo_url: string | null;
 };

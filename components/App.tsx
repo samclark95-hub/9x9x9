@@ -89,7 +89,6 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
         inning: draft.inning,
         beers: draft.beers,
         dogs: draft.dogs,
-        waters: draft.waters,
         note: draft.note || null,
         photo_url: localPhoto,
       };
@@ -121,7 +120,6 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
           inning: draft.inning,
           beers: draft.beers,
           dogs: draft.dogs,
-          waters: draft.waters,
           note: draft.note || null,
           photo_url: photoUrl,
         })
@@ -187,7 +185,6 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
       <Scoreboard
         beers={totals.beers}
         dogs={totals.dogs}
-        waters={totals.waters}
         inning={inning}
         pace={pace}
       />

@@ -1,6 +1,6 @@
 import type { Post } from "./types";
 
-export type Totals = { beers: number; dogs: number; waters: number };
+export type Totals = { beers: number; dogs: number };
 
 /**
  * Totals are ALWAYS derived by summing the feed. There is deliberately no
@@ -11,9 +11,8 @@ export function sumTotals(posts: Post[]): Totals {
     (acc, p) => ({
       beers: acc.beers + (p.beers || 0),
       dogs: acc.dogs + (p.dogs || 0),
-      waters: acc.waters + (p.waters || 0),
     }),
-    { beers: 0, dogs: 0, waters: 0 }
+    { beers: 0, dogs: 0 }
   );
 }
 

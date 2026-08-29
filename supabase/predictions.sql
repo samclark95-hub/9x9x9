@@ -1,11 +1,13 @@
--- Betting line: what does the group think he actually finishes on?
 -- Run this once in the Supabase SQL editor. Safe to re-run.
+-- It does two things: creates the betting-line table, and drops the now-unused
+-- waters column.
+
+-- 1. Betting line: what does the group think he actually finishes on?
 --
 -- Deliberately append-only, exactly like posts: every vote is a row, and the
 -- line is derived by taking each voter's most recent row. That means anon
 -- needs only select and insert - no update policy, so nobody can rewrite
 -- somebody else's vote.
-
 create table if not exists predictions (
   id          uuid primary key default gen_random_uuid(),
   created_at  timestamptz default now(),
@@ -35,3 +37,7 @@ begin
 exception
   when duplicate_object then null;
 end $$;
+
+-- 2. Water counts were removed from the app, so drop the column.
+--    The posts table is currently empty, so this loses nothing.
+alter table posts drop column if exists waters;

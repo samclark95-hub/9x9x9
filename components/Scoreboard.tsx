@@ -1,7 +1,7 @@
 "use client";
 
-import { GOAL } from "@/lib/types";
 import { ordinal } from "@/lib/totals";
+import { GOAL } from "@/lib/types";
 
 function Segments({ n, fill }: { n: number; fill: string }) {
   return (
@@ -60,22 +60,19 @@ function Counter({
 export default function Scoreboard({
   beers,
   dogs,
-  waters,
   inning,
   pace,
 }: {
   beers: number;
   dogs: number;
-  waters: number;
   inning: number | null;
   pace: number | null;
 }) {
   return (
     <div className="sticky top-0 z-30 -mx-4 border-b border-line bg-field/95 px-4 py-3 backdrop-blur">
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-6">
         <Counter emoji="🍺" label="Beers" n={beers} fill="bg-beer" text="text-beer" />
         <Counter emoji="🌭" label="Dogs" n={dogs} fill="bg-dog" text="text-dog" />
-        <Counter emoji="💧" label="Waters" n={waters} fill="bg-water" text="text-water" />
       </div>
 
       <div className="mt-2.5 flex items-center justify-between text-xs font-bold uppercase tracking-wide">

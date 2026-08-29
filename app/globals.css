@@ -9,7 +9,6 @@
   --color-muted: #8b9a8d;
   --color-beer: #f6b93b;
   --color-dog: #e55039;
-  --color-water: #4aa3df;
 
   /* Chunky condensed face for the counters: scoreboard, not dashboard. */
   --font-score: var(--font-anton), ui-sans-serif, system-ui, sans-serif;

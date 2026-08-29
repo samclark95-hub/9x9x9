@@ -23,7 +23,7 @@ export default function PostCard({
   canDelete?: boolean;
   onDelete?: (id: string) => void;
 }) {
-  const hasDeltas = post.beers > 0 || post.dogs > 0 || post.waters > 0;
+  const hasDeltas = post.beers > 0 || post.dogs > 0;
 
   return (
     <article className="overflow-hidden rounded-2xl bg-surface ring-1 ring-line">
@@ -54,7 +54,6 @@ export default function PostCard({
           <div className="mt-3 flex flex-wrap gap-2">
             <Chip emoji="🍺" n={post.beers} tint="text-beer" />
             <Chip emoji="🌭" n={post.dogs} tint="text-dog" />
-            <Chip emoji="💧" n={post.waters} tint="text-water" />
           </div>
         )}
 

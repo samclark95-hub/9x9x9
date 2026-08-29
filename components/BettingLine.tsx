@@ -52,6 +52,7 @@ function Row({
 export default function BettingLine({ name }: { name: string | null }) {
   const [rows, setRows] = useState<Prediction[]>([]);
   const [available, setAvailable] = useState(true);
+  const [loaded, setLoaded] = useState(false);
   const [open, setOpen] = useState(false);
   const [beers, setBeers] = useState<number | null>(null);
   const [dogs, setDogs] = useState<number | null>(null);
@@ -67,9 +68,11 @@ export default function BettingLine({ name }: { name: string | null }) {
     if (error) {
       // Table not created yet - hide the bar rather than break the app.
       setAvailable(false);
+      setLoaded(true);
       return;
     }
     setRows((data ?? []) as Prediction[]);
+    setLoaded(true);
   }, []);
 
   useEffect(() => {
@@ -123,7 +126,9 @@ export default function BettingLine({ name }: { name: string | null }) {
     setOpen(false);
   }
 
-  if (!available) return null;
+  // Nothing until we know the table exists - otherwise the bar flashes
+  // "No bets yet" and then vanishes.
+  if (!available || !loaded) return null;
 
   return (
     <>

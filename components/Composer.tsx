@@ -5,7 +5,6 @@ import { useRef, useState } from "react";
 export type Draft = {
   beers: number;
   dogs: number;
-  waters: number;
   inning: number | null;
   note: string;
   file: File | null;
@@ -14,18 +13,16 @@ export type Draft = {
 const EMPTY: Draft = {
   beers: 0,
   dogs: 0,
-  waters: 0,
   inning: null,
   note: "",
   file: null,
 };
 
-type Counter = "beers" | "dogs" | "waters";
+type Counter = "beers" | "dogs";
 
 const COUNTERS: { key: Counter; emoji: string; label: string; ring: string }[] = [
   { key: "beers", emoji: "🍺", label: "Beer", ring: "focus-visible:ring-beer" },
   { key: "dogs", emoji: "🌭", label: "Dog", ring: "focus-visible:ring-dog" },
-  { key: "waters", emoji: "💧", label: "Water", ring: "focus-visible:ring-water" },
 ];
 
 export default function Composer({
@@ -41,7 +38,7 @@ export default function Composer({
   const [preview, setPreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const staged = draft.beers + draft.dogs + draft.waters;
+  const staged = draft.beers + draft.dogs;
   const canPost =
     !busy && (staged > 0 || draft.note.trim().length > 0 || draft.file !== null);
 
@@ -72,7 +69,7 @@ export default function Composer({
       className="rounded-3xl bg-surface p-4 ring-1 ring-line"
     >
       {/* Tap to stage, tap again to increase. One-handed, in the dark. */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         {COUNTERS.map(({ key, emoji, label, ring }) => (
           <button
             key={key}
@@ -100,7 +97,7 @@ export default function Composer({
         <button
           type="button"
           onClick={() =>
-            setDraft((d) => ({ ...d, beers: 0, dogs: 0, waters: 0 }))
+            setDraft((d) => ({ ...d, beers: 0, dogs: 0 }))
           }
           className="mt-2 w-full py-1 text-xs font-semibold uppercase tracking-wide text-muted"
         >
