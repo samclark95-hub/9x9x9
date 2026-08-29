@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { uploadPhoto } from "@/lib/photo";
 import { supabase } from "@/lib/supabase";
-import type { Post } from "@/lib/types";
+import { fixNote, type Post } from "@/lib/types";
 import { currentInning, paceInning, sumTotals } from "@/lib/totals";
 import { useAdmin } from "@/lib/useAdmin";
 import { useName } from "@/lib/useName";
 import Scoreboard from "./Scoreboard";
 import BettingLine from "./BettingLine";
+import FixNumbers from "./FixNumbers";
 import Celebration from "./Celebration";
 import Composer, { type Draft } from "./Composer";
 import Feed from "./Feed";
@@ -30,6 +31,7 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
 
   // The 9/9 payoff fires on the crossing only - never on a reload that
   // happens to load a feed already at nine.
+  const [fixing, setFixing] = useState(false);
   const [celebration, setCelebration] = useState<string | null>(null);
   const prevTotals = useRef<{ beers: number; dogs: number } | null>(null);
 
@@ -173,6 +175,33 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
     [isAdmin, adminSecret, posts]
   );
 
+  const handleFix = useCallback(
+    async (next: { beers: number; dogs: number; inning: number | null }) => {
+      if (!name) return;
+      setBusy(true);
+      setError(null);
+
+      // Store the DELTA required to reach the target, not the target.
+      // The scoreboard sums the feed, so this keeps totals derived and
+      // leaves no stored counter that could drift.
+      const deltaBeers = next.beers - totals.beers;
+      const deltaDogs = next.dogs - totals.dogs;
+
+      const { error: insertError } = await supabase.from("posts").insert({
+        author: name,
+        inning: next.inning,
+        beers: deltaBeers,
+        dogs: deltaDogs,
+        note: fixNote(next.beers, next.dogs, next.inning),
+      });
+
+      if (insertError) setError("Could not update the count. Try again.");
+      setBusy(false);
+      setFixing(false);
+    },
+    [name, totals.beers, totals.dogs]
+  );
+
   return (
     <>
       {celebration && (
@@ -182,7 +211,19 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
         />
       )}
 
+      {fixing && (
+        <FixNumbers
+          beers={totals.beers}
+          dogs={totals.dogs}
+          inning={inning}
+          busy={busy}
+          onCancel={() => setFixing(false)}
+          onSubmit={handleFix}
+        />
+      )}
+
       <Scoreboard
+        onFix={name ? () => setFixing(true) : undefined}
         beers={totals.beers}
         dogs={totals.dogs}
         inning={inning}

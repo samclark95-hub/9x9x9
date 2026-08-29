@@ -61,11 +61,13 @@ export default function Scoreboard({
   beers,
   dogs,
   inning,
+  onFix,
   pace,
 }: {
   beers: number;
   dogs: number;
   inning: number | null;
+  onFix?: () => void;
   pace: number | null;
 }) {
   return (
@@ -79,9 +81,20 @@ export default function Scoreboard({
         <span className="text-muted">
           {inning ? `${ordinal(inning)} inning` : "Pre-game"}
         </span>
-        <span className={pace && pace > 9 ? "text-dog" : "text-muted"}>
-          {paceLabel(beers, pace)}
-        </span>
+        <div className="flex items-center gap-3">
+          {onFix && (
+            <button
+              type="button"
+              onClick={onFix}
+              className="rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-muted ring-1 ring-line transition active:scale-95"
+            >
+              Fix
+            </button>
+          )}
+          <span className={pace && pace > 9 ? "text-dog" : "text-muted"}>
+            {paceLabel(beers, pace)}
+          </span>
+        </div>
       </div>
     </div>
   );

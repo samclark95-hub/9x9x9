@@ -16,13 +16,20 @@ export function sumTotals(posts: Post[]): Totals {
   );
 }
 
-/** Current inning is the highest inning anyone has posted. */
+/**
+ * Current inning is the one on the most recent post that specified it.
+ *
+ * This used to be the maximum, but the maximum cannot be corrected
+ * downward - a mistaken 9 would pin the game at the 9th forever. Taking
+ * the latest lets anyone fix it by posting the right inning.
+ */
 export function currentInning(posts: Post[]): number | null {
-  let max: number | null = null;
+  let best: Post | null = null;
   for (const p of posts) {
-    if (p.inning != null && (max === null || p.inning > max)) max = p.inning;
+    if (p.inning == null) continue;
+    if (!best || p.created_at > best.created_at) best = p;
   }
-  return max;
+  return best?.inning ?? null;
 }
 
 /**

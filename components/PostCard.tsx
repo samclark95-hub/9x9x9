@@ -1,5 +1,5 @@
 import { ordinal } from "@/lib/totals";
-import { BET_PREFIX, isBetNote, type Post } from "@/lib/types";
+import { BET_PREFIX, FIX_PREFIX, isBetNote, isFixNote, type Post } from "@/lib/types";
 import RelativeTime from "./RelativeTime";
 
 function Chip({ emoji, n, tint }: { emoji: string; n: number; tint: string }) {
@@ -23,14 +23,21 @@ export default function PostCard({
   canDelete?: boolean;
   onDelete?: (id: string) => void;
 }) {
-  const hasDeltas = post.beers > 0 || post.dogs > 0;
   const isBet = isBetNote(post.note);
+  const isFix = isFixNote(post.note);
+  // A fix post stores a delta, so its chips would misread as "+1 beer".
+  const hasDeltas = !isFix && (post.beers > 0 || post.dogs > 0);
 
   return (
     <article className="overflow-hidden rounded-2xl bg-surface ring-1 ring-line">
       <div className="p-4">
         <header className="flex items-baseline gap-2">
           <h3 className="truncate font-bold">{post.author}</h3>
+          {isFix && (
+            <span className="shrink-0 rounded-md bg-chalk/15 px-2 py-0.5 text-xs font-black uppercase tracking-wide text-chalk ring-1 ring-chalk/30">
+              Fix
+            </span>
+          )}
           {isBet && (
             <span className="shrink-0 rounded-md bg-beer/20 px-2 py-0.5 text-xs font-black uppercase tracking-wide text-beer ring-1 ring-beer/40">
               Bet
@@ -66,10 +73,18 @@ export default function PostCard({
         {post.note && (
           <p
             className={`mt-3 break-words text-[15px] leading-snug ${
-              isBet ? "font-bold text-beer" : "text-chalk/90"
+              isBet
+                ? "font-bold text-beer"
+                : isFix
+                  ? "font-bold text-chalk"
+                  : "text-chalk/90"
             }`}
           >
-            {isBet ? post.note.slice(BET_PREFIX.length).trim() : post.note}
+            {isBet
+              ? post.note.slice(BET_PREFIX.length).trim()
+              : isFix
+                ? post.note.slice(FIX_PREFIX.length).trim()
+                : post.note}
           </p>
         )}
       </div>
