@@ -1,6 +1,6 @@
 import App from "@/components/App";
 import HeroHeader from "@/components/HeroHeader";
-import InstallBanner from "@/components/InstallBanner";
+import BetHintBanner from "@/components/BetHintBanner";
 import { supabase } from "@/lib/supabase";
 import type { Post } from "@/lib/types";
 
@@ -27,7 +27,7 @@ export default async function Home() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-5 px-4 pb-16 pt-8">
       <HeroHeader />
-      <InstallBanner />
+      <BetHintBanner />
       <App initialPosts={posts} />
     </main>
   );
