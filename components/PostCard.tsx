@@ -1,3 +1,4 @@
+import { ordinal } from "@/lib/totals";
 import type { Post } from "@/lib/types";
 import RelativeTime from "./RelativeTime";
 
@@ -76,12 +77,4 @@ export default function PostCard({
       )}
     </article>
   );
-}
-
-function ordinal(n: number): string {
-  const suffix =
-    n % 100 >= 11 && n % 100 <= 13
-      ? "th"
-      : ["th", "st", "nd", "rd"][n % 10] ?? "th";
-  return `${n}${suffix}`;
 }

@@ -4,7 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { uploadPhoto } from "@/lib/photo";
 import { supabase } from "@/lib/supabase";
 import type { Post } from "@/lib/types";
+import { currentInning, paceInning, sumTotals } from "@/lib/totals";
 import { useName } from "@/lib/useName";
+import Scoreboard from "./Scoreboard";
 import Composer, { type Draft } from "./Composer";
 import Feed from "./Feed";
 import NamePrompt from "./NamePrompt";
@@ -16,6 +18,11 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
   const [error, setError] = useState<string | null>(null);
   const [live, setLive] = useState(false);
   const { name, setName, ready } = useName();
+
+  // Derived on every render by summing the feed - never stored (spec §4).
+  const totals = sumTotals(posts);
+  const inning = currentInning(posts);
+  const pace = paceInning(totals.beers, inning);
 
   // Realtime: new posts from other phones land here without a refresh.
   useEffect(() => {
@@ -128,6 +135,14 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
 
   return (
     <>
+      <Scoreboard
+        beers={totals.beers}
+        dogs={totals.dogs}
+        waters={totals.waters}
+        inning={inning}
+        pace={pace}
+      />
+
       {ready && !name && <NamePrompt onSubmit={setName} />}
 
       {name && <Composer onPost={handlePost} busy={busy} status={status} />}
