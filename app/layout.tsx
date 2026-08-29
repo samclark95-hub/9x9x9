@@ -1,6 +1,14 @@
 import type { Metadata, Viewport } from "next";
+import { Anton } from "next/font/google";
 import ServiceWorker from "@/components/ServiceWorker";
 import "./globals.css";
+
+const anton = Anton({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-anton",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "TKN KB Tracker",
@@ -44,7 +52,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={anton.variable}>
       <body className="min-h-dvh antialiased">
         {children}
         <ServiceWorker />

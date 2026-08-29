@@ -1,4 +1,5 @@
 import App from "@/components/App";
+import HeroHeader from "@/components/HeroHeader";
 import InstallBanner from "@/components/InstallBanner";
 import { supabase } from "@/lib/supabase";
 import type { Post } from "@/lib/types";
@@ -25,15 +26,8 @@ export default async function Home() {
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-5 px-4 pb-16 pt-8">
-      <header className="text-center">
-        <h1 className="text-4xl font-black leading-none tracking-tight">
-          TKN KB Tracker
-        </h1>
-        <p className="mt-2 text-sm text-muted">9 beers. 9 hot dogs. 9 innings.</p>
-      </header>
-
+      <HeroHeader />
       <InstallBanner />
-
       <App initialPosts={posts} />
     </main>
   );

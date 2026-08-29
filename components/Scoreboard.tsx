@@ -39,7 +39,7 @@ function Counter({
           {emoji}
         </span>
         <span
-          className={`text-3xl font-black leading-none tabular-nums ${
+          className={`font-score text-4xl leading-none tabular-nums ${
             done ? text : "text-chalk"
           }`}
         >

@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Dark theme only — no light mode (spec §7). */
+/* Dark theme only - no light mode (spec §7). */
 @theme {
   --color-field: #0a0e0a;
   --color-surface: #141a15;
@@ -10,6 +10,9 @@
   --color-beer: #f6b93b;
   --color-dog: #e55039;
   --color-water: #4aa3df;
+
+  /* Chunky condensed face for the counters: scoreboard, not dashboard. */
+  --font-score: var(--font-anton), ui-sans-serif, system-ui, sans-serif;
 }
 
 html {

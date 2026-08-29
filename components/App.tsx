@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { uploadPhoto } from "@/lib/photo";
 import { supabase } from "@/lib/supabase";
 import type { Post } from "@/lib/types";
@@ -8,6 +8,7 @@ import { currentInning, paceInning, sumTotals } from "@/lib/totals";
 import { useAdmin } from "@/lib/useAdmin";
 import { useName } from "@/lib/useName";
 import Scoreboard from "./Scoreboard";
+import Celebration from "./Celebration";
 import Composer, { type Draft } from "./Composer";
 import Feed from "./Feed";
 import NamePrompt from "./NamePrompt";
@@ -25,6 +26,19 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
   const totals = sumTotals(posts);
   const inning = currentInning(posts);
   const pace = paceInning(totals.beers, inning);
+
+  // The 9/9 payoff fires on the crossing only - never on a reload that
+  // happens to load a feed already at nine.
+  const [celebration, setCelebration] = useState<string | null>(null);
+  const prevTotals = useRef<{ beers: number; dogs: number } | null>(null);
+
+  useEffect(() => {
+    const prev = prevTotals.current;
+    prevTotals.current = { beers: totals.beers, dogs: totals.dogs };
+    if (!prev) return;
+    if (prev.beers < 9 && totals.beers >= 9) setCelebration("9 BEERS");
+    else if (prev.dogs < 9 && totals.dogs >= 9) setCelebration("9 DOGS");
+  }, [totals.beers, totals.dogs]);
 
   // Realtime: new posts from other phones land here without a refresh.
   useEffect(() => {
@@ -162,6 +176,13 @@ export default function App({ initialPosts }: { initialPosts: Post[] }) {
 
   return (
     <>
+      {celebration && (
+        <Celebration
+          label={celebration}
+          onDismiss={() => setCelebration(null)}
+        />
+      )}
+
       <Scoreboard
         beers={totals.beers}
         dogs={totals.dogs}
